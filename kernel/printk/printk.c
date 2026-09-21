@@ -108,6 +108,7 @@ int __read_mostly suppress_printk;
 static u32 dedup_last_key;
 static u32 dedup_repeat;
 static bool dedup_active;
+static bool dedup_flushing;
 static u64 dedup_window_start;
 #define PRINTK_DEDUP_WINDOW_NS	1000000000ULL	/* 1s */
 static bool printk_dedup = true;
@@ -143,9 +144,18 @@ static bool outputs_dedupe(int facility, int level, const char *fmt)
 	if (level <= LOGLEVEL_ERR || !printk_dedup)
 		return false;
 
+	/*
+	 * dedup_lock is not NMI safe: a message from NMI context while
+	 * another CPU holds the lock would spin forever. Skip dedup
+	 * from NMI, and skip while our own summary is being printed
+	 * to keep the recursive call from clobbering the dedup state.
+	 */
+	if (in_nmi() || dedup_flushing)
+		return false;
+
 	key = hash_64((unsigned long)(fmt ? : ""), 32) ^
 	      hash_32(facility ^ level, 32);
-	now = ktime_get_ns();
+	now = ktime_get_mono_fast_ns();
 
 	raw_spin_lock_irqsave(&dedup_lock, flags);
 
@@ -183,9 +193,14 @@ static bool outputs_dedupe(int facility, int level, const char *fmt)
 	/*
 	 * Print only after dropping the lock: pr_info() re-enters
 	 * vprintk_emit() and would deadlock on dedup_lock otherwise.
+	 * dedup_flushing keeps the recursive call from overwriting
+	 * dedup_last_key, which would leak one repeated message.
 	 */
-	if (n)
+	if (n) {
+		dedup_flushing = true;
 		pr_info("last message repeated %u times\n", n);
+		dedup_flushing = false;
+	}
 
 	return drop;
 }
