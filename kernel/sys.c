@@ -189,7 +189,7 @@ EXPORT_SYMBOL(fs_overflowgid);
  * amdgpu/nouveau/radeon/nvidia provide this channel on supported
  * hardware. Returns 0 if no driver reports a power reading.
  */
-static long gpu_hwmon_power_mw(void)
+static s64 gpu_hwmon_power_mw(void)
 {
 	static const char * const gpu_drivers[] = {
 		"amdgpu", "nouveau", "radeon", "nvidia",
@@ -197,8 +197,8 @@ static long gpu_hwmon_power_mw(void)
 	char buf[32];
 	char path[64];
 	loff_t pos;
-	long total_uw = 0;
-	long val;
+	s64 total_uw = 0;
+	s64 val;
 	int i, j, ret;
 
 	for (i = 0; i < 32; i++) {
@@ -238,7 +238,7 @@ static long gpu_hwmon_power_mw(void)
 			continue;
 		buf[ret] = '\0';
 
-		if (kstrtol(buf, 10, &val))
+		if (kstrtos64(buf, 10, &val))
 			continue;
 
 		total_uw += val;
@@ -279,7 +279,7 @@ SYSCALL_DEFINE2(system_energy_efficiency, int __user *, mode, int __user *, valu
 {
 	int mode_v, ret;
 	int gpu_num, gpu_energy;
-	long gpu_power_mw;
+	s64 gpu_power_mw;
 
 	if (get_user(mode_v, mode))
 		return -EFAULT;
