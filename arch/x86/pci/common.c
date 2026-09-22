@@ -573,10 +573,16 @@ char *__init pcibios_setup(char *str)
 		pci_probe |= PCI_USE_PIRQ_MASK;
 		return NULL;
 	} else if (!strncmp(str, "irqmask=", 8)) {
-		kstrtouint(str + 8, 0, &pcibios_irq_mask);
+		u32 val;
+
+		if (!kstrtouint(str + 8, 0, &val))
+			pcibios_irq_mask = val;
 		return NULL;
 	} else if (!strncmp(str, "lastbus=", 8)) {
-		kstrtoint(str + 8, 0, &pcibios_last_bus);
+		int val;
+
+		if (!kstrtoint(str + 8, 0, &val))
+			pcibios_last_bus = val;
 		return NULL;
 	} else if (!strcmp(str, "rom")) {
 		pci_probe |= PCI_ASSIGN_ROMS;

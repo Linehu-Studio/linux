@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: GPL-2.0
+#
+# DRR-lite: experimental page-level checkpoint/rollback (Deshab DRR port)
+
+menuconfig DRR
+	bool "DRR: Dedicated Recovery Root (EXPERIMENTAL)"
+	default n
+	help
+	  Experimental port of the Deshab-OS DRR design: a boot-reserved
+	  memory area survives warm reboots, kernel memory regions can be
+	  checkpointed into A/B slots with CRC protection, and after a panic
+	  the next boot restores the registered regions automatically.
+
+	  Say N unless you are experimenting with kernel recovery.
+
+if DRR
+
+config DRR_DEMO
+	tristate "DRR demo driver"
+	depends on DRR
+	default m
+	help
+	  Registers a small memory region with DRR and exposes sysfs knobs
+	  to checkpoint, corrupt the state and panic, for the full
+	  crash -> reboot -> rollback loop.  Also serves as the reference
+	  example for subsystems wanting to protect their own state with
+	  drr_register_region().
+
+endif # DRR

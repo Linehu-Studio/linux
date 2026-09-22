@@ -48,6 +48,7 @@ CONTEXT_ANALYSIS_kcov.o := y
 CFLAGS_kcov.o := $(call cc-option, -fno-conserve-stack) -fno-stack-protector
 
 obj-y += sched/
+obj-$(CONFIG_DRR) += drr/
 obj-y += locking/
 obj-y += power/
 obj-y += printk/

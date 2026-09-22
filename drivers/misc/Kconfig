@@ -5,6 +5,14 @@
 
 menu "Misc devices"
 
+config DRR_DEMO
+	tristate "DRR demo driver"
+	depends on DRR
+	help
+	  Demo for the experimental DRR checkpoint/rollback framework.
+	  Registers a small state region and exposes sysfs knobs to run
+	  the crash -> reboot -> rollback loop under QEMU.
+
 config SENSORS_LIS3LV02D
 	tristate
 	depends on INPUT
