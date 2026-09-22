@@ -423,11 +423,10 @@ static unsigned long soft_lockup_nmi_warn;
 
 static int __init softlockup_panic_setup(char *str)
 {
-	int ret;
+	unsigned int val;
 
-	ret = kstrtouint(str, 0, &softlockup_panic);
-	if (ret)
-		pr_warn("softlockup_panic: bad option string '%s'\n", str);
+	if (!kstrtouint(str, 0, &val))
+		softlockup_panic = val;
 	return 1;
 }
 __setup("softlockup_panic=", softlockup_panic_setup);
