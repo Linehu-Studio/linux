@@ -426,7 +426,9 @@ static int __init softlockup_panic_setup(char *str)
 	int ret;
 
 	ret = kstrtouint(str, 0, &softlockup_panic);
-	return ret ? ret : 1;
+	if (ret)
+		pr_warn("softlockup_panic: bad option string '%s'\n", str);
+	return 1;
 }
 __setup("softlockup_panic=", softlockup_panic_setup);
 
